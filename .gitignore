@@ -1,3 +1,7 @@
+<<<<<<< HEAD
 top_d3
 env
-__pycache__/
+*/__pycache__/
+=======
+env
+>>>>>>> master

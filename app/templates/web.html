@@ -1,0 +1,59 @@
+<h<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Test</title>
+    </head>
+    <body>
+      <style>
+
+        .node {
+          stroke: #fff;
+          stroke-width: 1.5px;
+        }
+
+        .link {
+          fill: none;
+          stroke: #bbb;
+        }
+
+      </style>
+      <svg width="960" height="600"></svg>
+      <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script>
+            var artists = {{ top_artists|tojson }};
+            var relations = {{ relations|tojson }};
+
+            var svg = d3.select("svg"),
+                width = +svg.attr("width"),
+                height = +svg.attr("height");
+
+            var color = (255, 0, 255);
+
+            var simulation = d3.forceSimulation()
+              .force("link", d3.forceLink().distance(10).strength(0.5))
+              .force("charge", d3.forceManyBody())
+              .force("center", d3.forceCenter(width / 2, height / 2));
+
+
+            var node = svg.selectAll(".node")
+              .data(artists)
+              .enter().append("circle")
+                .attr("class", "node")
+                .attr("r", 25)
+                .attr("cx", function(d, i) {
+                  if (i.toString().slice(-1) == 9)
+                    return i * 86.5;
+                  return ((i + 1) % 10) * 86.5; })
+                .attr("cy", function(d, i) {
+                  return Math.floor((i / 10) + 1) * 95.6; });
+            node.append("title")
+              .text(function(d) { return d.name; });
+
+            simulation
+              .nodes(artists);
+              // .on("tick");
+
+        </script>
+    </body>
+</html>
