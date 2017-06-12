@@ -3,57 +3,107 @@
     <head>
         <meta charset="utf-8">
         <title>D3 Test</title>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
     </head>
     <body>
       <style>
 
-        .node {
-          stroke: #fff;
-          stroke-width: 1.5px;
-        }
+      .link {
+        stroke: #aaa;
+      }
 
-        .link {
-          fill: none;
-          stroke: #bbb;
-        }
+      .node {
+        pointer-events: all;
+        stroke: none;
+        stroke-width: 10px;
+        padding: 5px;
+      }
 
       </style>
-      <svg width="960" height="600"></svg>
-      <script src="https://d3js.org/d3.v4.min.js"></script>
-        <script>
-            var artists = {{ top_artists|tojson }};
-            var relations = {{ relations|tojson }};
+      <div class="svg-container" width="100%" height="100%" align="center">
+      <svg height="100%" viewBox="0 0 100 100"></svg>
 
-            var svg = d3.select("svg"),
-                width = +svg.attr("width"),
-                height = +svg.attr("height");
-
-            var color = (255, 0, 255);
-
-            var simulation = d3.forceSimulation()
-              .force("link", d3.forceLink().distance(10).strength(0.5))
-              .force("charge", d3.forceManyBody())
-              .force("center", d3.forceCenter(width / 2, height / 2));
+      <script>
+          var artists = {{ top_artists|tojson }};
 
 
-            var node = svg.selectAll(".node")
+          var svg = d3.select("svg"),
+            height = 100,
+            width = 100,
+            center_x = width / 2,
+            center_y = height / 2
+            big_r = (height * .9) / 2,
+            theta = ((Math.PI*2) / artists.length);
+
+          var defs = svg.append('defs');
+            defs.selectAll('.pattern')
+            .data(artists)
+            .enter()
+            .append('pattern')
+              .attr('id', function (d) { return d.id; })
+              .attr('clipPathUnits', 'userSpaceOnUse')
+              .attr('width', 5)
+              .attr('height', 5)
+            .append('image')
+              .attr('xlink:href', function (d) { return d.img.url; })
+              .attr('width', function (d) {
+                if (d.img.width <= d.img.height) {
+                  return 5;
+                }
+              })
+              .attr('height', function (d) {
+                if (d.img.height <= d.img.width) {
+                  return 5;
+                }
+              });
+
+            defs.append('pattern')
+              .attr('id', 'center_node')
+              .attr('clipPathUnits', 'objectBoundingBox')
+              .attr('width', "100%")
+              .attr('height', "100%")
+              .append('image')
+              .attr('xlink:href', "")
+              .attr('width', function (d) {
+                var w = 1, h = 2;
+                if (w < h) {
+                  return 50; }
+              });
+
+            svg.append('svg:circle')
+              .attr('class', 'center_node')
+              .attr('r', 25)
+              .attr('cx', center_x)
+              .attr('cy', center_y)
+              .attr('fill', "url(#center_node)");
+
+          svg.selectAll('.node')
               .data(artists)
-              .enter().append("circle")
-                .attr("class", "node")
-                .attr("r", 25)
-                .attr("cx", function(d, i) {
-                  if (i.toString().slice(-1) == 9)
-                    return i * 86.5;
-                  return ((i + 1) % 10) * 86.5; })
-                .attr("cy", function(d, i) {
-                  return Math.floor((i / 10) + 1) * 95.6; });
-            node.append("title")
-              .text(function(d) { return d.name; });
+              .enter()
+              .append('svg:circle')
+              .attr('class', 'node')
+              .attr('r', 2.5)
+              .attr('cx', function (d, i) {
+                a = theta * i;
+                return (big_r * Math.cos(a)) + center_x;
+              })
+              .attr('cy', function (d, i) {
+                a = theta * i;
+                return (big_r * Math.sin(a)) + center_y;
+              })
+              .attr('fill', function (d) { return 'url(#' + d.id + ')'; })
+              .on('mouseover', function (d) {
+                svg.select('#center_node')
+                  .select('image')
+                  .attr('xlink:href', d.img.url);
+              })
+              .append('title')
+                .text(function (d) { return d.name; });
 
-            simulation
-              .nodes(artists);
-              // .on("tick");
-
-        </script>
-    </body>
+            function mouseOver(d) {
+              d3.select(this).style("fill", "white");
+            }
+</script>
+</div>
+</body>
 </html>

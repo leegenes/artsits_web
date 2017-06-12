@@ -46,12 +46,10 @@ def authorized():
 
     data = spotify_handler.SpotifyData(oauth_session)
     d['top'] = data.get_top_artists()
-    d['relations'] = data.get_relations()
 
     return redirect(url_for('web'))
 
 @app.route('/artist_web')
 def web():
     return render_template('web.html',
-                            top_artists=d['top'],
-                            relations=d['relations'])
+                            top_artists=d['top'])
