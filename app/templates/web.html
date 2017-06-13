@@ -7,16 +7,9 @@
     </head>
     <body>
       <style>
-
-      .link {
-        stroke: #aaa;
-      }
-
-      .node {
-        pointer-events: all;
-        stroke: none;
-        stroke-width: 10px;
-        padding: 5px;
+      #center-node {
+        opacity: 0.4;
+        filter: alpha(opacity=40);
       }
 
       </style>
@@ -26,7 +19,6 @@
       <script>
           var artists = {{ top_artists|tojson }};
 
-
           var svg = d3.select("svg"),
             height = 100,
             width = 100,
@@ -35,74 +27,144 @@
             big_r = (height * .9) / 2,
             theta = ((Math.PI*2) / artists.length);
 
-          var defs = svg.append('defs');
-            defs.selectAll('.pattern')
-            .data(artists)
-            .enter()
-            .append('pattern')
-              .attr('id', function (d) { return d.id; })
-              .attr('clipPathUnits', 'userSpaceOnUse')
-              .attr('width', 5)
-              .attr('height', 5)
+          var center = svg.append('g');
+
+          center.append('pattern')
+            .attr('id', 'center_node')
+            .attr('clipPathUnits', 'objectBoundingBox')
+            .attr('width', "100%")
+            .attr('height', "100%")
             .append('image')
-              .attr('xlink:href', function (d) { return d.img.url; })
-              .attr('width', function (d) {
-                if (d.img.width <= d.img.height) {
-                  return 5;
-                }
-              })
-              .attr('height', function (d) {
-                if (d.img.height <= d.img.width) {
-                  return 5;
-                }
-              });
+            .attr('xlink:href', "")
+            .attr('width', 0)
+            .attr('height', 0);
 
-            defs.append('pattern')
-              .attr('id', 'center_node')
-              .attr('clipPathUnits', 'objectBoundingBox')
-              .attr('width', "100%")
-              .attr('height', "100%")
-              .append('image')
-              .attr('xlink:href', "")
-              .attr('width', function (d) {
-                var w = 1, h = 2;
-                if (w < h) {
-                  return 50; }
-              });
+          center.append('circle')
+            .attr('class', 'center-bakground')
+            .attr('r', 40)
+            .attr('cx', center_x)
+            .attr('cy', center_y)
+            .attr('fill', "#fff");
 
-            svg.append('svg:circle')
+          center.append('circle')
               .attr('class', 'center_node')
-              .attr('r', 25)
+              .attr('r', 40)
               .attr('cx', center_x)
               .attr('cy', center_y)
-              .attr('fill', "url(#center_node)");
+              .attr('fill', "url(#center_node)")
+              .style('opacity', .4)
+              .style('filter', "alpha(opacity=40)");
 
-          svg.selectAll('.node')
-              .data(artists)
-              .enter()
-              .append('svg:circle')
-              .attr('class', 'node')
-              .attr('r', 2.5)
-              .attr('cx', function (d, i) {
-                a = theta * i;
-                return (big_r * Math.cos(a)) + center_x;
-              })
-              .attr('cy', function (d, i) {
-                a = theta * i;
-                return (big_r * Math.sin(a)) + center_y;
-              })
-              .attr('fill', function (d) { return 'url(#' + d.id + ')'; })
-              .on('mouseover', function (d) {
-                svg.select('#center_node')
-                  .select('image')
-                  .attr('xlink:href', d.img.url);
-              })
+          center.append('text')
+              .attr('id', 'big-name')
+              .attr('x', '80%')
+              .attr('y', '72.5%')
+              .attr('text-anchor', 'end')
+              .style('font-size', 3.75)
+              .style('fill', '#485256')
+              .style('font-family', 'sans-serif')
+              .text('');
+
+
+          var nodeGroups = svg.selectAll('.arbitrary')
+            .data(artists)
+            .enter()
+            .append('g')
+            .attr('class', 'group-node');
+
+          var lineGroups = nodeGroups.append('g')
+                .attr('class', 'lines');
+                // .attr('display', 'none')
+
+          var lines = lineGroups.selectAll('.line')
+                .data(function (d) { return d.related_to; })
+                .enter()
+                .append('line')
+                .attr('class', 'line')
+                .attr('point_to', function (i) { return i; })
+                .attr('x1', center_x)
+                .attr('x2', center_x)
+                .attr('y1', center_y)
+                .attr('y2', center_y)
+                .style('stroke', '#485256')
+                .style('stroke-width', .5);
+
+          var patterns = nodeGroups.append('pattern')
+            .attr('id', function (d) { return d.id; })
+            .attr('clipPathUnits', 'userSpaceOnUse')
+            .attr('width', 5)
+            .attr('height', 5)
+          .append('image')
+            .attr('xlink:href', function (d) { return d.img.url; })
+            .attr('width', function (d) {
+              if (d.img.width <= d.img.height) {
+                return 5;
+              }
+            })
+            .attr('height', function (d) {
+              if (d.img.height <= d.img.width) {
+                return 5;
+              }
+            });
+
+          var nodes = nodeGroups.append('circle')
+                .attr('class', 'node')
+                .on('mouseover', onMouse)
+                // .on('mouseout', offMouse)
+                .attr('id', function (d) {
+                  return 'node-' + d.id;})
+                .attr('r', 2.5)
+                .attr('cx', function (d, i) {
+                  a = theta * i;
+                  return (big_r * Math.cos(a)) + center_x;
+                })
+                .attr('cy', function (d, i) {
+                  a = theta * i;
+                  return (big_r * Math.sin(a)) + center_y;
+                })
+                .attr('fill', function (d) { return 'url(#' + d.id + ')'; })
               .append('title')
                 .text(function (d) { return d.name; });
 
-            function mouseOver(d) {
-              d3.select(this).style("fill", "white");
+          console.log(lineGroups.selectAll('.line'));
+          lineGroups.selectAll('.line')
+            .enter()
+            .attr('x2', function (d, i) {
+              return nodes.select('#node-' + i.attr('point_to'))
+                .attr("cx");
+            })
+            .attr('y2',function (d, i) {
+              return nodes.select('#node-' + i.attr('point_to'))
+                .attr("cy");
+            });
+
+
+          function onMouse (d) {
+            svg.select('#center_node')
+              .select('image')
+                .attr('xlink:href', d.img.url)
+                .attr('width', setCenterWidth(d.img.width, d.img.height))
+                .attr('height', setCenterHeight(d.img.width, d.img.height));
+
+            svg.select('#big-name')
+                .text(d.name);
+
+          // function offMouse() {
+          //   // d3.select(this).attr('display', 'none')
+          // }
+
+          function setCenterWidth (width, height) {
+            if (width <= height) {
+              return 80;
             }
+          }
+
+          function setCenterHeight (width, height) {
+              if (height <= width) {
+                return 80;
+              }
+          }
+        }
 </script>
 </div>
 </body>
