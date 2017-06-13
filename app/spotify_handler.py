@@ -6,7 +6,7 @@ class SpotifyData:
 
     def get_top_artists(self):
         def request_top():
-            params = {'limit': 50}
+            params = {'limit': 50, 'time_range': 'short_term'}
             top50 = self.oauth.request('GET',
                             'v1/me/top/artists',
                             params=params)
