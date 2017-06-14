@@ -45,8 +45,8 @@ class SpotifyData:
             return self.top_artists
         else:
             top50 = request_top()
+            self.top_ids = [a['id'] for a in top50]
             for a in top50:
-                self.top_ids.append(a['id'])
                 self.top_artists.append({'id': a['id'],
                                 'name': a['name'],
                                 'popularity': a['popularity'],
