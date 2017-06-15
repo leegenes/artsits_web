@@ -1,8 +1,7 @@
 from flask import Flask, request, redirect, render_template, url_for, session, flash
 from rauth.service import OAuth2Service
 from app import app, spotify_handler
-# from . import spotify_handler
-import json
+import os, json
 
 spotify = OAuth2Service(name='spotify',
                      authorize_url='https://accounts.spotify.com/authorize',
