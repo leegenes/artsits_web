@@ -7,8 +7,8 @@ import json
 spotify = OAuth2Service(name='spotify',
                      authorize_url='https://accounts.spotify.com/authorize',
                      access_token_url='https://accounts.spotify.com/api/token',
-                     client_id='5cbabc9978fc41b8b05ed9dd4c03ed2c', # os.getenv('SPOTIFY_CLIENT_ID'),
-                     client_secret='22c3ee302938487ca2bd2132c9dba461', #os.getenv('SPOTIFY_CLIENT_SECRET'),
+                     client_id=os.getenv('SPOTIFY_CLIENT_ID'),
+                     client_secret=os.getenv('SPOTIFY_CLIENT_SECRET'),
                      base_url='https://api.spotify.com/')
 
 d = {}
